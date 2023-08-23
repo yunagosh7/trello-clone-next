@@ -1,8 +1,10 @@
 import { Todo, TypedColumn } from "@/typings";
 import { PlusCircleIcon } from "@heroicons/react/24/solid";
 import { todo } from "node:test";
-import React from "react";
+import React, { useState } from "react";
 import { Draggable, Droppable } from "react-beautiful-dnd";
+import TodoCard from "./TodoCard";
+import { useBoardStore } from "@/store/BoardStore";
 
 type Props = {
   id: TypedColumn;
@@ -18,7 +20,10 @@ const idToColumnText: {
   done: "Done",
 };
 
-function Column({ id, todos, index }: Props) {
+function ColumnComponent({ id, todos, index }: Props) {
+  const [searchString] = useBoardStore((state) => [
+    state.searchString
+  ])
   return (
     <Draggable draggableId={id} index={index}>
       {(provided) => (
@@ -41,11 +46,15 @@ function Column({ id, todos, index }: Props) {
                   {idToColumnText[id]}
 
                   <span className="text-gray-500 bg-gray-200 rounded-full font-normal px-2 py-2 text-sm font-normal">
-                    {todos.length}
+                    {
+                    !searchString ? todos.length : todos.filter(todo => todo.title.toLowerCase().includes(searchString.toLowerCase())).length }
                   </span>
                 </h2>
                 <div className="space-y-2">
-                  {todos.map((todo, index) => (
+                  {todos.map((todo, index) => {
+                    if (searchString && !todo.title.toLowerCase().includes(searchString.toLowerCase())) return null
+
+                    return (
                     <Draggable
                       key={todo.$id}
                       draggableId={todo.$id}
@@ -62,7 +71,7 @@ function Column({ id, todos, index }: Props) {
                         />
                       )}
                     </Draggable>
-                  ))}
+                  )})}
                   {provided.placeholder}
                   <div className="flex items-center justify-end">
                     <button className="text-gray-500 hover:text-green-600">
@@ -79,4 +88,4 @@ function Column({ id, todos, index }: Props) {
   );
 }
 
-export default Column;
+export default ColumnComponent;
